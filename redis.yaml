@@ -1,0 +1,24 @@
+version: "3.9"
+services:
+  n8n_redis:
+    image: redis
+    container_name: n8n_redis
+    command: redis-server --save 20 1 --appendonly no --requirepass Laura2020 --loglevel warning
+
+    user: root
+    privileged: true
+    ports:
+      - 6379:6379
+    restart: always
+    environment:
+      REDIS_APPENDFSYNC: always
+      ALLOW_EMPTY_PASSWORD: no
+      DISABLE_COMMANDS: FLUSHDB,FLUSHALL,CONFIG
+    volumes:
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
+
+networks:
+  default:
+    external: true
+    name: portainer
+
