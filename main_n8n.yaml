@@ -1,0 +1,294 @@
+version: "3.9"
+services:
+  n8n:
+    container_name: n8n
+    image: n8nio/n8n:0.187.2
+    # command: n8n start 0.178.2 -> 0.180.0 -> 0.181.2 -> 0.182.0 -> 0.183.0
+    restart: unless-stopped
+    environment:
+      # ----- redis ----- #
+      QUEUE_BULL_REDIS_HOST: n8n_redis
+      QUEUE_BULL_REDIS_PORT: 6379
+      QUEUE_BULL_REDIS_PASSWORD: ${REDIS_PASSWORD}
+      # ----- MYSQL DB ----- #
+      DB_TYPE: mysqldb
+      DB_MYSQLDB_HOST: ${DB_MYSQLDB_HOST}
+      DB_MYSQLDB_PORT: ${DB_MYSQLDB_PORT}
+      DB_MYSQLDB_DATABASE: ${DB_MYSQLDB_DATABASE}
+      DB_MYSQLDB_USER: ${MYSQL_NON_ROOT_USER}
+      DB_MYSQLDB_PASSWORD: ${MYSQL_NON_ROOT_PASSWORD}
+      # ----- logging ----- #
+      N8N_LOG_LEVEL: debug
+      # ----- scaling ----- #
+      EXECUTIONS_MODE: queue
+      # ----- ENCRYPTION_KEY ---- #
+      N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY}
+      # ----- SMTP ---- #
+      N8N_EMAIL_MODE: smtp
+      N8N_SMTP_HOST: ${N8N_SMTP_HOST}
+      N8N_SMTP_USER: ${N8N_SMTP_USER}
+      N8N_SMTP_SENDER: ${N8N_SMTP_SENDER}
+      N8N_SMTP_PASS: ${N8N_SMTP_PASS}
+      SSL_EMAIL: y.m.lima19@gmail.com
+      # ----- TIMEZONE ---- #
+      GENERIC_TIMEZONE: America/Fortaleza
+      # ----- WORKFLOWS NAME ---- #
+      WORKFLOWS_DEFAULT_NAME: "My Uatiz WorkFlow"
+      # ----- WEBHOOKS ---- #
+      WEBHOOK_URL: https://automacao.uatiz.app
+      N8N_SKIP_WEBHOOK_DEREGISTRATION_SHUTDOWN: "true"
+
+      N8N_EDITOR_BASE_URL: https://automacao.uatiz.app
+      N8N_PERSONALIZATION_ENABLED: "true"
+      N8N_DISABLE_PRODUCTION_MAIN_PROCESS: "false"
+      EXECUTIONS_DATA_PRUNE: "true"
+      EXECUTIONS_DATA_MAX_AGE: 1
+      
+      # ----- METRICS ---- #
+      N8N_METRICS: "true"
+      
+      N8N_HOST: automacao.uatiz.app
+      N8N_PORT: 5678
+      N8N_PROTOCOL: https
+      SUBDOMAIN: automacao
+      DOMAIN_NAME: uatiz.app
+      VUE_APP_URL_BASE_API: https://automacao.uatiz.app
+      # ----- AUTHENTICATIONs ---- #
+      N8N_BASIC_AUTH_ACTIVE: ${N8N_BASIC_AUTH_ACTIVE}
+      N8N_BASIC_AUTH_USER: ${N8N_BASIC_AUTH_USER}
+      N8N_BASIC_AUTH_PASSWORD: ${N8N_BASIC_AUTH_PASSWORD}
+      # ----- DEV ENVIROMENTS ---- #
+      NODE_ENV: production
+    volumes:
+      - /home/yurilima/n8n-local-files:/files
+      - /home/yurilima/n8n_data:/home/node/.n8n
+    ports:
+      - 5678:5678
+    # Wait 5 seconds to start n8n to make sure that PostgreSQL is ready
+    # when n8n tries to connect to it
+    command: /bin/sh -c "sleep 5; n8n start"
+    
+  n8n_worker_1:
+    container_name: n8n_worker_1
+    image: n8nio/n8n:0.187.2
+    command: n8n worker
+    restart: unless-stopped
+    environment:
+      EXECUTIONS_PROCESS: main
+      EXECUTIONS_MODE: queue
+      NODE_ENV: production
+      # ----- redis ----- #
+      QUEUE_BULL_REDIS_HOST: n8n_redis
+      QUEUE_BULL_REDIS_PORT: 6379
+      QUEUE_BULL_REDIS_PASSWORD: ${REDIS_PASSWORD}
+      # ----- MYSQL DB ----- #
+      DB_TYPE: mysqldb
+      DB_MYSQLDB_HOST: ${DB_MYSQLDB_HOST}
+      DB_MYSQLDB_PORT: ${DB_MYSQLDB_PORT}
+      DB_MYSQLDB_DATABASE: ${DB_MYSQLDB_DATABASE}
+      DB_MYSQLDB_USER: ${MYSQL_NON_ROOT_USER}
+      DB_MYSQLDB_PASSWORD: ${MYSQL_NON_ROOT_PASSWORD}
+      # ----- logging ----- #
+      N8N_LOG_LEVEL: debug
+     # ----- SMTP ---- #
+      N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY}
+      N8N_EMAIL_MODE: smtp
+      N8N_SMTP_HOST: ${N8N_SMTP_HOST}
+      N8N_SMTP_USER: ${N8N_SMTP_USER}
+      N8N_SMTP_SENDER: ${N8N_SMTP_SENDER}
+      N8N_SMTP_PASS: ${N8N_SMTP_PASS}
+      # ----- TIMEZONE ---- #
+      GENERIC_TIMEZONE: America/Fortaleza
+      # -----  WORKFLOWS NAME ---- #
+      WORKFLOWS_DEFAULT_NAME: "My Uatiz WorkFlow"
+      # ----- WEBHOOKS ---- #
+      WEBHOOK_URL: https://automacao.uatiz.app
+      N8N_SKIP_WEBHOOK_DEREGISTRATION_SHUTDOWN: "true"
+
+      N8N_EDITOR_BASE_URL: https://automacao.uatiz.app
+      N8N_PERSONALIZATION_ENABLED: "true"
+      EXECUTIONS_DATA_PRUNE: "true"
+      EXECUTIONS_DATA_MAX_AGE: 1
+
+      SSL_EMAIL: y.m.lima19@gmail.com
+      N8N_HOST: automacao.uatiz.app
+      N8N_PORT: 5679
+      N8N_PROTOCOL: https
+      SUBDOMAIN: automacao
+      DOMAIN_NAME: uatiz.app
+    ports:
+      - 5679:5679
+    depends_on:
+      - "n8n"
+    volumes:
+      - /home/yurilima/n8n_data:/home/node/.n8n
+  
+  n8n_worker_2:
+    container_name: n8n_worker_2
+    image: n8nio/n8n:0.187.2
+    command: n8n worker
+    restart: unless-stopped
+    environment:
+      EXECUTIONS_PROCESS: main
+      EXECUTIONS_MODE: queue
+      NODE_ENV: production
+      # ----- redis ----- #
+      QUEUE_BULL_REDIS_HOST: n8n_redis
+      QUEUE_BULL_REDIS_PORT: 6379
+      QUEUE_BULL_REDIS_PASSWORD: ${REDIS_PASSWORD}
+      # ----- MYSQL DB ----- #
+      DB_TYPE: mysqldb
+      DB_MYSQLDB_HOST: ${DB_MYSQLDB_HOST}
+      DB_MYSQLDB_PORT: ${DB_MYSQLDB_PORT}
+      DB_MYSQLDB_DATABASE: ${DB_MYSQLDB_DATABASE}
+      DB_MYSQLDB_USER: ${MYSQL_NON_ROOT_USER}
+      DB_MYSQLDB_PASSWORD: ${MYSQL_NON_ROOT_PASSWORD}
+      # ----- logging ----- #
+      N8N_LOG_LEVEL: debug
+     # ----- SMTP ---- #
+      N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY}
+      N8N_EMAIL_MODE: smtp
+      N8N_SMTP_HOST: ${N8N_SMTP_HOST}
+      N8N_SMTP_USER: ${N8N_SMTP_USER}
+      N8N_SMTP_SENDER: ${N8N_SMTP_SENDER}
+      N8N_SMTP_PASS: ${N8N_SMTP_PASS}
+      # ----- TIMEZONE ---- #
+      GENERIC_TIMEZONE: America/Fortaleza
+      # -----  WORKFLOWS NAME ---- #
+      WORKFLOWS_DEFAULT_NAME: "My Uatiz WorkFlow"
+      # ----- WEBHOOKS ---- #
+      WEBHOOK_URL: https://automacao.uatiz.app
+      N8N_SKIP_WEBHOOK_DEREGISTRATION_SHUTDOWN: "true"
+
+      N8N_EDITOR_BASE_URL: https://automacao.uatiz.app
+      N8N_PERSONALIZATION_ENABLED: "true"
+      EXECUTIONS_DATA_PRUNE: "true"
+      EXECUTIONS_DATA_MAX_AGE: 1
+
+      SSL_EMAIL: y.m.lima19@gmail.com
+      N8N_HOST: automacao.uatiz.app
+      N8N_PORT: 5682
+      N8N_PROTOCOL: https
+      SUBDOMAIN: automacao
+      DOMAIN_NAME: uatiz.app
+    ports:
+      - 5682:5682
+    depends_on:
+      - "n8n"
+    volumes:
+      - /home/yurilima/n8n_data:/home/node/.n8n
+  
+  n8n_webhook_1:
+    container_name: n8n_webhook_1
+    image: n8nio/n8n:0.187.2
+    command: n8n webhook
+    restart: unless-stopped
+    environment:
+      EXECUTIONS_PROCESS: main
+      EXECUTIONS_MODE: queue
+      NODE_ENV: production
+      # ----- redis ----- #
+      QUEUE_BULL_REDIS_HOST: n8n_redis
+      QUEUE_BULL_REDIS_PORT: 6379
+      QUEUE_BULL_REDIS_PASSWORD: ${REDIS_PASSWORD}
+      # ----- MYSQL DB ----- #
+      DB_TYPE: mysqldb
+      DB_MYSQLDB_HOST: ${DB_MYSQLDB_HOST}
+      DB_MYSQLDB_PORT: ${DB_MYSQLDB_PORT}
+      DB_MYSQLDB_DATABASE: ${DB_MYSQLDB_DATABASE}
+      DB_MYSQLDB_USER: ${MYSQL_NON_ROOT_USER}
+      DB_MYSQLDB_PASSWORD: ${MYSQL_NON_ROOT_PASSWORD}
+      # ----- logging ----- #
+      N8N_LOG_LEVEL: debug
+     # ----- SMTP ---- #
+      N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY}
+      N8N_EMAIL_MODE: smtp
+      N8N_SMTP_HOST: ${N8N_SMTP_HOST}
+      N8N_SMTP_USER: ${N8N_SMTP_USER}
+      N8N_SMTP_SENDER: ${N8N_SMTP_SENDER}
+      N8N_SMTP_PASS: ${N8N_SMTP_PASS}
+      # ----- TIMEZONE ---- #
+      GENERIC_TIMEZONE: ${GENERIC_TIMEZONE}
+      # -----  WORKFLOWS NAME ---- #
+      WORKFLOWS_DEFAULT_NAME: "My Uatiz WorkFlow"
+      # ----- WEBHOOKS ---- #
+      WEBHOOK_URL: https://automacao.uatiz.app
+      N8N_SKIP_WEBHOOK_DEREGISTRATION_SHUTDOWN: "true"
+
+      N8N_EDITOR_BASE_URL: https://automacao.uatiz.app
+      N8N_PERSONALIZATION_ENABLED: "true"
+      EXECUTIONS_DATA_PRUNE: "true"
+      EXECUTIONS_DATA_MAX_AGE: 1
+
+      SSL_EMAIL: y.m.lima19@gmail.com
+      N8N_HOST: automacao.uatiz.app
+      N8N_PORT: 5680
+      N8N_PROTOCOL: https
+      SUBDOMAIN: automacao
+      DOMAIN_NAME: uatiz.app
+    ports:
+      - 5680:5680
+    depends_on:
+      - "n8n"
+    volumes:
+      - /home/yurilima/n8n_data:/home/node/.n8n
+
+  n8n_webhook_2:
+    container_name: n8n_webhook_2
+    image: n8nio/n8n:0.187.2
+    command: n8n webhook
+    restart: unless-stopped
+    environment:
+      EXECUTIONS_PROCESS: main
+      EXECUTIONS_MODE: queue
+      NODE_ENV: production
+      # ----- redis ----- #
+      QUEUE_BULL_REDIS_HOST: n8n_redis
+      QUEUE_BULL_REDIS_PORT: 6379
+      QUEUE_BULL_REDIS_PASSWORD: ${REDIS_PASSWORD}
+      # ----- MYSQL DB ----- #
+      DB_TYPE: mysqldb
+      DB_MYSQLDB_HOST: ${DB_MYSQLDB_HOST}
+      DB_MYSQLDB_PORT: ${DB_MYSQLDB_PORT}
+      DB_MYSQLDB_DATABASE: ${DB_MYSQLDB_DATABASE}
+      DB_MYSQLDB_USER: ${MYSQL_NON_ROOT_USER}
+      DB_MYSQLDB_PASSWORD: ${MYSQL_NON_ROOT_PASSWORD}
+      # ----- logging ----- #
+      N8N_LOG_LEVEL: debug
+     # ----- SMTP ---- #
+      N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY}
+      N8N_EMAIL_MODE: smtp
+      N8N_SMTP_HOST: ${N8N_SMTP_HOST}
+      N8N_SMTP_USER: ${N8N_SMTP_USER}
+      N8N_SMTP_SENDER: ${N8N_SMTP_SENDER}
+      N8N_SMTP_PASS: ${N8N_SMTP_PASS}
+      # ----- TIMEZONE ---- #
+      GENERIC_TIMEZONE: America/Fortaleza
+      # -----  WORKFLOWS NAME ---- #
+      WORKFLOWS_DEFAULT_NAME: "My Uatiz WorkFlow"
+      # ----- WEBHOOKS ---- #
+      WEBHOOK_URL: https://automacao.uatiz.app
+      N8N_SKIP_WEBHOOK_DEREGISTRATION_SHUTDOWN: "true"
+
+      N8N_EDITOR_BASE_URL: https://automacao.uatiz.app
+      N8N_PERSONALIZATION_ENABLED: "true"
+      EXECUTIONS_DATA_PRUNE: "true"
+      EXECUTIONS_DATA_MAX_AGE: 1
+
+      SSL_EMAIL: y.m.lima19@gmail.com
+      N8N_HOST: automacao.uatiz.app
+      N8N_PORT: 5681
+      N8N_PROTOCOL: https
+      SUBDOMAIN: automacao
+      DOMAIN_NAME: uatiz.app
+    ports:
+      - 5681:5681
+    depends_on:
+      - "n8n"
+    volumes:
+      - /home/yurilima/n8n_data:/home/node/.n8n
+
+networks:
+  default:
+    external: true
+    name: portainer
